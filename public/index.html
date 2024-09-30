@@ -1,0 +1,266 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tomasz John / job / X</title>
+
+  <style>
+    body {
+      font-size: 20px;
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: #e0e0e0;
+    }
+
+    button {
+      background-color: #3090ff;
+      color: white;
+      border: 0;
+      padding: 10px 17px;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    table * {
+      padding: 10px 30px;
+      background-color: #dadada;
+    }
+
+    #test_area {
+      background-color: white;
+      padding: 40px;
+    }
+
+    #test_area * {
+      min-height: 10px;
+      border: solid 4px #999;
+      margin: 5px;
+      padding: 10px;
+    }
+
+    #test_area *:hover {
+      border: solid 4px #3090ff !important;
+      cursor: pointer;
+    }
+
+    #test_area *[widget] {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    @keyframes blink {
+      50% {
+        border-color: #ff0000;
+      }
+    }
+
+    #test_area *.initializing {
+      border: dotted 4px green;
+      animation: blink .5s step-end infinite alternate;
+    }
+
+    #test_area *.ok {
+      border: solid 4px green;
+    }
+
+    #test_area *.failed {
+      border: solid 4px red;
+    }
+
+    .help_initializing {
+      display: inline-block;
+      padding: 10px 50px;
+      border: dotted 4px green;
+      animation: blink .5s step-end infinite alternate;
+    }
+
+    .help_ok {
+      display: inline-block;
+      padding: 10px 50px;
+      border: solid 4px green;
+    }
+
+    .help_fail {
+      display: inline-block;
+      padding: 10px 50px;
+      border: solid 4px red;
+    }
+
+    .help_selected {
+      display: inline-block;
+      padding: 10px 10px;
+      border: solid 4px #3090ff !important;
+      min-width: 200px;
+    }
+
+    .help_widget {
+      display: inline-block;
+      padding: 14px 54px;
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    #widgets_status {
+      padding-bottom: 40px;
+    }
+  </style>
+
+  <script type="module" defer>
+    import X from './x/x.js' // x-one-by-one
+    import getPath from './x/demo/getPath.js'
+
+    // Test Area
+
+
+    // Init Info Area
+
+    let selectedElement
+    const testArea = document.getElementById('test_area')
+
+
+    const select = (el) => {
+      selectedElement = el
+
+      document.getElementById("selected_id").innerText = el.id ?? '-'
+      document.getElementById("selected_widget").innerText = el.getAttribute('widget')
+      document.getElementById("selected_path").innerText = getPath(el)
+    }
+
+
+
+    testArea.onclick = (e) => {
+      // remove 'selected' class from all elements
+
+      select(e.target)
+    }
+
+    select(document.getElementById('root'))
+
+
+    // Init Button Area
+
+    function renderInfo(result, destroyErrors) {
+      console.log(result, destroyErrors)
+
+      let status = `
+          <h4>Current State</h4>
+          <table>
+            <tr>
+              <td>Path</td>
+              <td>Widget</td>
+              <td>Status</td>
+              ${destroyErrors !== undefined ? '<td>WidgetDestroyed Error</td>' : ''}
+            </tr>
+            `
+      for (const widget of result) {
+        const node = widget[0]
+        const widgetInfo = widget[1]
+        let destroy = '-'
+        if (destroyErrors) {
+          destroy = destroyErrors.get(node)
+          if (!destroy)
+            destroy = '-'
+        }
+        status += `<tr>
+            <td>${getPath(node)}</td>
+            <td>${node.getAttribute('widget')}</td>
+            <td>${widgetInfo.status} / ${widgetInfo.widgetInstance.status}</td>
+            ${destroyErrors !== undefined ? `<td>${destroy}</td>` : ''}
+          </tr>`
+      }
+      status += '</table>'
+
+      return status
+    }
+
+
+    document.getElementById('init').addEventListener('click', () => {
+      X.init(selectedElement, (result) => {
+        console.log(result)
+
+        document.getElementById("widgets_status").innerHTML = renderInfo(result)
+
+      })
+    })
+
+    document.getElementById('destroy').addEventListener('click', () => {
+      X.destroy(selectedElement, (result, errors) => {
+        console.log(result, errors)
+
+        document.getElementById("widgets_status").innerHTML = renderInfo(result, errors)
+      })
+    })
+
+    document.getElementById('refresh').addEventListener('click', () => {
+      document.getElementById("widgets_status").innerHTML = renderInfo(X.initializedWidgets)
+    })
+
+
+    // user debug
+
+    document.getElementById('done').addEventListener('click', () => {
+      const widget = X.initializedWidgets.get(selectedElement)
+      if (widget && widget.status !== 'loading')
+        widget.widgetInstance?.doneHandler?.()
+    })
+
+    document.getElementById('fail').addEventListener('click', () => {
+      const widget = X.initializedWidgets.get(selectedElement)
+      if (widget && widget.status !== 'loading')
+        widget.widgetInstance?.failHandler?.()
+    })
+  </script>
+</head>
+
+<body>
+  <!-- Test Area -->
+  <div id="test_area">
+    <div></div>
+
+    <div id="root" widget="widgets/a">
+      <div widget="widgets/a" id="1">
+        <div></div>
+        <div widget="widgets/b" id="2">
+          <div widget="widgets/a" id="3"></div>
+        </div>
+        <div widget="widgets/a-user" id="4">
+          <div widget="widgets/a" id="5"></div>
+        </div>
+      </div>
+      <div></div>
+      <div widget="widgets/b-user" id="6">
+        <div widget="widgets/a" id="7"></div>
+      </div>
+    </div>
+
+    <div></div>
+  </div>
+  <!-- / Test Area -->
+
+  <p>
+  <div class="help_initializing">initializing</div>
+  <div class="help_ok">ok</div>
+  <div class="help_fail">fail</div>
+  <div class="help_widget">widget (widget attr exist)</div>
+
+  <hr />
+
+  <div class="help_selected">
+    ID: <span id="selected_id"></span><br />
+    Widget: <span id="selected_widget"></span><br />
+    Path: <span id="selected_path"></span>
+  </div>
+  </p>
+
+  <button id="init">X Init </button>
+  <button id="destroy">X Destroy</button>
+  &nbsp;&nbsp;
+  <button id="done">User Widget Init - Done</button>
+  <button id="fail">User Widget Init - Fail</button>
+  &nbsp;&nbsp;
+  <button id="refresh">@</button>
+
+  <div id="widgets_status"></div>
+
+</body>
+
+</html>
