@@ -1,14 +1,12 @@
 # x-frontend PL
 
-npm run dev - uruchamia serwer na porcie 3000
+npm run dev - starts the server on port 3000
 
-npm run demo-node - demo i testy w node
+npm run demo-node - demo and testing in node
 
 
 
-## X
-
-Używanie biblioteki:
+## X Class
 
 ### init
 
@@ -33,7 +31,7 @@ X.init(rootNode,
   })
 ```
 
-Tylko pierwszy parametr jest obowiązkowy.
+Only the first parameter is mandatory.
 
 
 ### destroy
@@ -49,14 +47,14 @@ X.destroy(rootNode, (widgetsInfo, errors) => {
 })
 ```
 
-Aby sprawdzić aktualny stan widgetów użyj:
+To check the current status of widgets use:
 ```js
 console.log(X.initializedWidgets)
 ```
 
 
 
-## XWidget
+## XWidget Class
 
 async init(node, done)
 destroy()
@@ -64,25 +62,24 @@ getStatus()
 hasFinished()
 
 
-### Definicja widgetu użytkownika
+### User Widget Definition
 
-Stworzenie klasy na bazie XWidget.
-Użytkownik powinien dodać metodę onInit i onDestroy.
+Creating a class based on XWidget.
+The user should add the onInit and onDestroy methods.
 
 #### onInit
 
-funkcja onInit powinna opcjonalnie zwrócić listę node, które powinny być analizowane przez X jako następne. Jeżeli nie będzie zdefiniowany to domyślnie będą analizowane dzieci widgetu.
+onInit function should optionally return a list of nodes that should be analyzed by X next. If it is not defined, the widget's children will be analyzed by default.
 
-oInit może zmienić atrybuty node widgetu, wygenerować content w tym wygenerowanie dzieci z kolejnymi widgetami. Możliwe jest też podmiana siebie na jeden lub kilka innych widgetów.
+oInit can change the node attributes of the widget, generate content, including generating children with subsequent widgets. It is also possible to replace itself with one or more other widgets.
 
-Funckcja onInit może być async lub normalna.
-normalna - należy wywołać this.done([...next nodes])
-w przypadku błędu należy wywołać this.fail(error)
-Dostęp do window przez this.window, do document przez this.document.
+The onInit function can be async or normal function.
+For a normal function, you should call this.done([...next nodes]) after completion and in case of an error you should call this.fail(error).
+Access to window via this.window, to document via this.document.
 
 #### onDestroy
 
-Funkcja onDestroy powinna posprzątać i zwrócić true jeżeli się udało usunięcie, Jeżeli nie - false.
+The onDestroy function should clean up and return true if the deletion was successful, otherwise false.
 
 
 ---
@@ -90,12 +87,12 @@ Funkcja onDestroy powinna posprzątać i zwrócić true jeżeli się udało usun
 
 ### Demo
 
-Po klikięciu na element możliwe jest jego wybranie. Szare elementy to te z atrybutem widget.
+After clicking on an element, you can select it. Gray elements are those with the widget attribute.
 
-X Init - uruchamia X Init dla wybranego node
+X Init - run X Init for selected node
 
-X Destroy - uruchamia Destroy dla wybranego node
+X Destroy - run X Destroy for selected node
 
-User Widget Init - Done / User Widget Init - Fail — dla demo widgetów użytkownika (...-user.js) pozwala na zakończenie inicjalizacji
+User Widget Init - Done / User Widget Init - Fail — for user widget demo (...-user.js) allows to complete initialization (correctly or with error)
 
-@ - pokazuje aktualny stan widgetów w X (pomocne gdy jakiś widget jest inicjalizowany)
+@ - shows the current state of widgets in X (useful when a widget is being initialized)
