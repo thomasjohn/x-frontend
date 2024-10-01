@@ -108,7 +108,31 @@
     import X from './x/x.js' // x-one-by-one
     import getPath from './x/demo/getPath.js'
 
+
     // Test Area
+
+    import XWidget from './x/xWidget.js' // x-one-by-one
+
+    class myWidget extends XWidget {
+      constructor() {
+        super()
+      }
+
+      myHandler() {
+        return this
+      }
+      my() {
+        return this
+      }
+    }
+
+    const widget = new myWidget()
+    const my = widget.my
+    const myHandler = widget.myHandler
+    if (typeof my() === 'undefined')
+      console.log('TEST my() ok')
+    if (typeof myHandler() === 'object')
+      console.log('TEST myHandler() ok')
 
 
     // Init Info Area
