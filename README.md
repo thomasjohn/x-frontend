@@ -4,6 +4,7 @@ npm run dev - starts the server on port 3000
 
 npm run demo-node - demo and testing in node
 
+The file x-one-by-one.js contains a version of X that waits for the widget to initialize before the parallel one does (no dependency) and waits for the children to initialize before returning to the parent (different order but worse performance).
 
 
 ## X Class
