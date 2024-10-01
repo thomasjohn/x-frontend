@@ -6,6 +6,23 @@ npm run demo-node - demo and testing in node
 
 The file x-one-by-one.js contains a version of X that waits for the widget to initialize before the parallel one does (no dependency) and waits for the children to initialize before returning to the parent (different order but worse performance).
 
+Coming soon:
+- better enum implementation with Proxy:
+```js
+export const STATUS = new Proxy({
+  LOADIG: 1,
+  LOADED: 2
+}, {
+  get(target, prop) {
+    if (prop in target) {
+      return target[prop]
+    } else {
+      throw new Error(`Property "${prop}" does not exist in STATUS`)
+    }
+  }
+})
+```
+
 
 ## X Class
 
