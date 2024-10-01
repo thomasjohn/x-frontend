@@ -6,11 +6,6 @@ export default class X {
   static #modules = new Map()
 
 
-  constructor(resolver) {
-    X.#resolver = resolver
-  }
-
-
   static async reset() {
     X.initializedWidgets = new Map()
     X.#modules = new Map()
@@ -19,7 +14,7 @@ export default class X {
 
   // init
 
-  static async init(root, callback, dom) {
+  static async init(root, callback, dom, resolver) {
     if (dom) {
       X.window = dom.window
       X.document = dom.window.document
@@ -29,28 +24,30 @@ export default class X {
       X.document = window.document
     }
 
+    X.#resolver = resolver
     X.#initWidgets([root], root, callback)
   }
 
 
   // test if nodes are widgets
-  // widget - init the widget
+  // for widgets - init
   // just a node - call init initChildWidgets
   static async #initWidgets(nodes, root, callback) {
     for (const node of nodes) {
       // findWidget will only test if target is a widget and return if so, if not - return null
       const widgetNode = X.#findWidgets(node, 'first-only')
 
-      // if the target is a widget will init the widget, if not will look inside
-      if (widgetNode)
+      if (widgetNode) {
         await X.#initWidget(widgetNode, root, callback) // add await
-      else
+      }
+      else {
         await X.#initChildWidgets(node, root, callback) // add await
+      }
     }
   }
 
 
-  // init widgets inside parenNode
+  // init widgets inside parentNode
   static async #initChildWidgets(parentNode, root, callback) {
     // get widgets inside node (without recursion)
     const widgetNodes = X.#findWidgets(parentNode)
@@ -70,7 +67,7 @@ export default class X {
         return
       }
 
-      console.log('initWidget', widgetNode.id)
+      //console.log('initWidget', widgetNode.id)
 
       // new widget
 
@@ -93,26 +90,27 @@ export default class X {
       const toVisitNodes = await widgetInstance.init(widgetNode)
 
       // next nodes
-      if (!toVisitNodes)
+      if (!toVisitNodes) {
         await X.#initChildWidgets(widgetNode, root, callback) // add await
-      else
+      } else {
         await X.#initWidgets(toVisitNodes, root, callback) // add await
+      }
     }
     catch (error) {
       // widget code not exist or error inside widget
-      throw error
     }
 
     // check if all widgets have status "ok"
     for (const widget of X.initializedWidgets) {
       if (X.#isChildNode(widget[0], root)
         && (widget[1].status === 'loading'
-          || !widget[1].widgetInstance.hasFinished()))
+          || !widget[1].widgetInstance.hasFinished())) {
         return
+      }
     }
 
     // all widget are initialized
-    callback(X.initializedWidgets)
+    callback?.(X.initializedWidgets)
   }
 
 
@@ -140,7 +138,6 @@ export default class X {
         }
         catch (error) {
           errors.set(widgetNode, error)
-          throw error
         }
       }
       else if (!widget) {
@@ -153,7 +150,7 @@ export default class X {
       }
     }
 
-    callback(X.initializedWidgets, errors.size ? errors : null)
+    callback?.(X.initializedWidgets, errors.size ? errors : null)
   }
 
 
@@ -168,10 +165,12 @@ export default class X {
     // type = first-only - test root node only
     // type = default - test node children only without the root node
     if (type === 'first-only') {
-      if (root.hasAttribute('widget'))
+      if (root.hasAttribute('widget')) {
         return root
-      else
+      }
+      else {
         return
+      }
     }
 
     // children - include widget nodes but do not check whats inside widget
@@ -189,17 +188,21 @@ export default class X {
     // create array with widgets
     const widgetNodes = []
     let node // = walker.nextNode()
-    if (type !== 'all')
+    if (type !== 'all') {
       node = walker.nextNode()
-    else
+    }
+    else {
       node = walker.currentNode
+    }
 
     while (node) {
       widgetNodes.push(node)
-      if (type !== 'all')
+      if (type !== 'all') {
         node = walker.nextSibling()
-      else
+      }
+      else {
         node = walker.nextNode()
+      }
     }
 
     // optionally reverse the order for destroy
@@ -215,8 +218,9 @@ export default class X {
       if (!module) {
         console.log('load module for ' + widgetPath)
 
-        if (X.#resolver)
+        if (X.#resolver) {
           module = await X.#resolver(widgetPath)
+        }
         else {
           // dynamic import with default export
           module = await import(`../${widgetPath}.js`)
