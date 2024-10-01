@@ -12,7 +12,7 @@ Coming soon:
 - better enum implementation with Proxy:
 ```js
 export const STATUS = new Proxy({
-  LOADIG: 1,
+  LOADING: 1,
   LOADED: 2
 }, {
   get(target, prop) {
@@ -37,9 +37,9 @@ static async init(root, callback, dom, resolver)
 import X from '...x.js'
 ...
 X.init(rootNode,
-  (widgetsInfo => {
+  widgetsInfo => {
     console.log(widgetInfo)
-  }),
+  },
   dom,
   widgetPath => {
     switch (widgetPath) {
