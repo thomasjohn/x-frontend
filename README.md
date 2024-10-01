@@ -56,10 +56,14 @@ console.log(X.initializedWidgets)
 
 ## XWidget Class
 
-async init(node, done)
-destroy()
-getStatus()
-hasFinished()
+async init(node, done) - called by X to initialize the widget
+
+destroy() - called by X to remove the widget
+
+getStatus() - returns widget status
+
+hasFinished() - returns true if the widget status is ok or error
+
 
 
 ### User Widget Definition
