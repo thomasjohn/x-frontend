@@ -6,11 +6,6 @@ export default class X {
   static #modules = new Map()
 
 
-  constructor(resolver) {
-    X.#resolver = resolver
-  }
-
-
   static async reset() {
     X.initializedWidgets = new Map()
     X.#modules = new Map()
@@ -19,7 +14,7 @@ export default class X {
 
   // init
 
-  static async init(root, callback, dom) {
+  static async init(root, callback, dom, resolver) {
     if (dom) {
       X.window = dom.window
       X.document = dom.window.document
@@ -29,19 +24,19 @@ export default class X {
       X.document = window.document
     }
 
+    X.#resolver = resolver
     X.#initWidgets([root], root, callback)
   }
 
 
   // test if nodes are widgets
-  // widget - init the widget
+  // for widgets - init
   // just a node - call init initChildWidgets
   static async #initWidgets(nodes, root, callback) {
     for (const node of nodes) {
       // findWidget will only test if target is a widget and return if so, if not - return null
       const widgetNode = X.#findWidgets(node, 'first-only')
 
-      // if the target is a widget will init the widget, if not will look inside
       if (widgetNode) {
         X.#initWidget(widgetNode, root, callback) // add await
       }
@@ -52,7 +47,7 @@ export default class X {
   }
 
 
-  // init widgets inside parenNode
+  // init widgets inside parentNode
   static async #initChildWidgets(parentNode, root, callback) {
     // get widgets inside node (without recursion)
     const widgetNodes = X.#findWidgets(parentNode)
@@ -115,7 +110,7 @@ export default class X {
     }
 
     // all widget are initialized
-    callback(X.initializedWidgets)
+    callback?.(X.initializedWidgets)
   }
 
 
@@ -155,7 +150,7 @@ export default class X {
       }
     }
 
-    callback(X.initializedWidgets, errors.size ? errors : null)
+    callback?.(X.initializedWidgets, errors.size ? errors : null)
   }
 
 
@@ -223,8 +218,9 @@ export default class X {
       if (!module) {
         console.log('load module for ' + widgetPath)
 
-        if (X.#resolver)
+        if (X.#resolver) {
           module = await X.#resolver(widgetPath)
+        }
         else {
           // dynamic import with default export
           module = await import(`../${widgetPath}.js`)
